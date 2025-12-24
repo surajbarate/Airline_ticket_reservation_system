@@ -1,0 +1,35 @@
+# Node / React frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Spring Boot backend
+AMS/target/
+AMS/.mvn/
+AMS/.env
+AMS/src/main/resources/application.properties
+
+# IDE / Tools
+.idea/
+.vscode/
+*.iml
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+
+# System files
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
