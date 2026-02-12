@@ -1,241 +1,249 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import api from "../api/axios";
 
 const AddPassenger = () => {
-    const [name, setName] = useState("");
-    const [age, setAge] = useState("");
-    const [gender, setGender] = useState("");
-    const [passengers, setPassengers] = useState([]); // Initialize as empty array
-    const [showPayment, setShowPayment] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState("");
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const flight = location.state?.flight;
+
+    const [passengers, setPassengers] = useState([
+        { name: "", age: "", gender: "" }
+    ]);
+
+    const [loading, setLoading] = useState(false);
 
 
-    const bookingId = localStorage.getItem("bookingId");
-    const token = localStorage.getItem("token");
-
-    // Fetch passengers on page load
+    // ================= Auth Check =================
     useEffect(() => {
-        if (bookingId && token) {
-            fetchPassengers();
-        } else {
-            console.warn("Missing bookingId or token");
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            navigate("/login");
         }
-    }, []);
 
-    const fetchPassengers = async () => {
-        const currentToken = localStorage.getItem('token'); // Fresh read
+        if (!flight) {
+            navigate("/dashboard");
+        }
 
-        if (!currentToken || !bookingId) {
-            alert("Please login and select a booking.");
+    }, [navigate, flight]);
+
+
+    // ================= Add Passenger =================
+    const addPassenger = () => {
+
+        setPassengers([
+            ...passengers,
+            { name: "", age: "", gender: "" }
+        ]);
+    };
+
+
+    // ================= Remove Passenger =================
+    const removePassenger = (index) => {
+
+        if (passengers.length === 1) return;
+
+        const updated = passengers.filter((_, i) => i !== index);
+        setPassengers(updated);
+    };
+
+
+    // ================= Handle Input =================
+    const handleChange = (index, field, value) => {
+
+        const updated = [...passengers];
+        updated[index][field] = value;
+        setPassengers(updated);
+    };
+
+
+    // ================= Total Price =================
+    const totalPrice = flight
+        ? flight.price * passengers.length
+        : 0;
+
+
+    // ================= Confirm Booking =================
+    const handleConfirm = async () => {
+
+        if (passengers.some(p => !p.name || !p.age || !p.gender)) {
+            alert("Please fill all passenger details");
             return;
         }
 
+        setLoading(true);
+
         try {
-            const res = await axios.get(
-                `http://localhost:8080/flight/booking/${bookingId}/passenger`,
+
+            await api.post(
+                `http://localhost:8080/flight/booking/${flight.id}`,
+                passengers,
                 {
                     headers: {
-                        Authorization: `Bearer ${currentToken}`
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        "Content-Type": "application/json"
                     }
                 }
             );
 
-            // Ensure data is an array
-            const data = res.data;
-            if (Array.isArray(data)) {
-                setPassengers(data);
-            } else if (data === null || data === undefined) {
-                setPassengers([]); // Treat null/undefined as empty list
-            } else {
-                console.error("Unexpected data format from backend:", data);
-                setPassengers([]); // Fallback
-            }
-        } catch (error) {
-            console.error("Error fetching passengers:", error);
-            setPassengers([]); // Reset to empty on error
-            if (error.response?.status === 403) {
-                alert("Session expired or unauthorized. Please login again.");
-            } else {
-                alert("Failed to load passengers");
-            }
+            alert("Booking Successful! 🎉");
+            navigate("/dashboard");
+
+        } catch (err) {
+
+            console.error(err);
+            alert("Booking Failed ❌");
+
+        } finally {
+            setLoading(false);
         }
     };
 
-    const addPassenger = async () => {
-        if (!name || !age || !gender) {
-            alert("Please fill all fields");
-            return;
-        }
 
-        const currentToken = localStorage.getItem('token');
-        if (!currentToken || !bookingId) {
-            alert("Please login and select a booking.");
-            return;
-        }
-
-        try {
-            await axios.post(
-                `http://localhost:8080/flight/booking/${bookingId}/passenger`,
-                { name, age, gender },
-                {
-                    headers: {
-                        Authorization: `Bearer ${currentToken}`
-                    }
-                }
-            );
-
-            alert("Passenger added successfully!");
-            setName("");
-            setAge("");
-            setGender("");
-            fetchPassengers(); // Refresh
-        } catch (error) {
-            console.error("Error adding passenger:", error);
-            if (error.response?.status === 403) {
-                alert("Unauthorized. Please login again.");
-            } else {
-                alert("Failed to add passenger");
-            }
-        }
-    };
-
+    // ================= UI =================
     return (
-        <div style={{ width: "500px", margin: "40px auto" }}>
-            <h2>Add Passenger</h2>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-rose-50 p-6">
 
-            <input
-                type="text"
-                placeholder="Name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-            />
 
-            <input
-                type="number"
-                placeholder="Age"
-                value={age}
-                onChange={e => setAge(e.target.value)}
-                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-            />
+            {/* HEADER */}
+            <h1 className="text-3xl font-bold text-center mb-8">
+                Passenger Details
+            </h1>
 
-            <select
-                value={gender}
-                onChange={e => setGender(e.target.value)}
-                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-            >
-                <option value="">Select Gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-            </select>
 
-            <button
-                onClick={addPassenger}
-                style={{ width: "100%", background: "green", color: "white", padding: "12px", border: "none", fontSize: "16px" }}
-            >
-                Add Passenger
-            </button>
+            {/* FLIGHT DETAILS */}
+            {flight && (
 
-            {/* Passenger List - Safe rendering */}
-            <h3 style={{ marginTop: "30px" }}>Passenger List</h3>
-            {Array.isArray(passengers) && passengers.length > 0 ? (
-                <table border="1" width="100%" style={{ marginTop: "10px" }}>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>Gender</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {passengers.map((p, index) => (
-                            <React.Fragment key={p.id || index}>
-                                <tr>
-                                    <td>{p.name}</td>
-                                    <td>{p.age}</td>
-                                    <td>{p.gender}</td>
-                                </tr>
-                            </React.Fragment>
-                        ))}
-                    </tbody>
-                </table>
-            ) : (
-                <p>No passengers added yet.</p>
-            )}
+                <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow mb-8">
 
-            {Array.isArray(passengers) && passengers.length > 0 && (
-                <button
-                    onClick={() => setShowPayment(true)}
-                    style={{
-                        width: "100%",
-                        background: "blue",
-                        color: "white",
-                        padding: "12px",
-                        marginTop: "20px",
-                        border: "none",
-                        fontSize: "16px"
-                    }}
-                >
-                    Proceed to Payment
-                </button>
-            )}
+                    <h2 className="text-xl font-bold mb-3">
+                        Flight Information
+                    </h2>
 
-            {showPayment && (
-                <div style={{ marginTop: "30px", border: "1px solid #ccc", padding: "15px" }}>
-                    <h3>Payment Summary</h3>
-
+                    <p><b>Flight:</b> {flight.flightNumber}</p>
+                    <p><b>Route:</b> {flight.source} → {flight.destination}</p>
                     <p>
-                        <b>Total Passengers:</b> {passengers.length}
+                        <b>Date:</b>{" "}
+                        {new Date(flight.travelDate).toDateString()}
                     </p>
 
-                    <p>
-                        <b>Price per Passenger:</b> ₹4500
+                    <p className="text-orange-600 font-bold text-lg">
+                        Price per Passenger: ₹{flight.price}
                     </p>
 
-                    <p>
-                        <b>Total Amount:</b> ₹{passengers.length * 4500}
-                    </p>
-
-                    <select
-                        value={paymentMethod}
-                        onChange={e => setPaymentMethod(e.target.value)}
-                        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-                    >
-                        <option value="">Select Payment Method</option>
-                        <option value="UPI">UPI</option>
-                        <option value="CARD">Credit / Debit Card</option>
-                        <option value="NETBANKING">Net Banking</option>
-                    </select>
-
-                    <button
-                        onClick={async () => {
-                            if (!paymentMethod) {
-                                alert("Please select payment method");
-                                return;
-                            }
-
-                            try {
-                                await axios.put(
-                                    `http://localhost:8080/flight/booking/${bookingId}/confirm`,
-                                    {},
-                                    {
-                                        headers: {
-                                            Authorization: `Bearer ${token}`
-                                        }
-                                    }
-                                );
-
-                                alert("Payment successful! Booking confirmed ✈️");
-                            } catch (err) {
-                                alert("Payment failed or booking confirmation error");
-                            }
-                        }}
-                    >
-                        Pay Now
-                    </button>
                 </div>
             )}
+
+
+            {/* PASSENGER FORM */}
+            <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow">
+
+                <h2 className="text-xl font-bold mb-4">
+                    Passenger Information
+                </h2>
+
+
+                {passengers.map((passenger, index) => (
+
+                    <div
+                        key={index}
+                        className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 border-b pb-4 items-center"
+                    >
+
+                        {/* Name */}
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={passenger.name}
+                            onChange={(e) =>
+                                handleChange(index, "name", e.target.value)
+                            }
+                            className="px-4 py-2 border rounded-lg"
+                        />
+
+                        {/* Age */}
+                        <input
+                            type="number"
+                            placeholder="Age"
+                            value={passenger.age}
+                            onChange={(e) =>
+                                handleChange(index, "age", e.target.value)
+                            }
+                            className="px-4 py-2 border rounded-lg"
+                        />
+
+                        {/* Gender */}
+                        <select
+                            value={passenger.gender}
+                            onChange={(e) =>
+                                handleChange(index, "gender", e.target.value)
+                            }
+                            className="px-4 py-2 border rounded-lg"
+                        >
+                            <option value="">Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+
+                        {/* Remove */}
+                        <button
+                            onClick={() => removePassenger(index)}
+                            disabled={passengers.length === 1}
+                            className="px-3 py-2 bg-red-500 text-white rounded-lg disabled:opacity-50"
+                        >
+                            ❌
+                        </button>
+
+                    </div>
+                ))}
+
+
+                {/* ADD PASSENGER */}
+                <button
+                    onClick={addPassenger}
+                    className="mb-6 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                >
+                    + Add Passenger
+                </button>
+
+
+                {/* PRICE SUMMARY */}
+                <div className="mb-6 p-4 bg-orange-50 border rounded-lg">
+
+                    <h3 className="font-bold mb-2 text-lg">
+                        💰 Price Summary
+                    </h3>
+
+                    <p>
+                        Passengers: {passengers.length}
+                    </p>
+
+                    <p>
+                        Price per Ticket: ₹{flight?.price}
+                    </p>
+
+                    <p className="text-xl font-bold text-green-600 mt-2">
+                        Total Amount: ₹{totalPrice}
+                    </p>
+
+                </div>
+
+
+                {/* CONFIRM */}
+                <button
+                    onClick={handleConfirm}
+                    disabled={loading}
+                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold rounded-xl"
+                >
+                    {loading ? "Booking..." : `Confirm & Pay ₹${totalPrice}`}
+                </button>
+
+            </div>
 
         </div>
     );

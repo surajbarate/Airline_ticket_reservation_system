@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
+
 const Dashboard = () => {
     const navigate = useNavigate();
 
@@ -82,6 +84,27 @@ const Dashboard = () => {
         navigate("/login");
     };
 
+    // ---------------- BOOKING ----------------
+    const handleBook = (flight) => {
+        navigate("/add-passenger", {
+            state: { flight }
+        });
+    };
+
+    const handleShowTicket = () => {
+        const token = localStorage.getItem("token");
+
+        if (!token || token === "undefined") {
+            alert("Please login first");
+            navigate("/login");
+            return;
+        }
+
+        navigate("/ticket");
+    };
+
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-rose-50">
 
@@ -107,13 +130,26 @@ const Dashboard = () => {
                             </span>
                         </div>
 
-                        {/* Logout Button */}
-                        <button
-                            onClick={handleLogout}
-                            className="px-5 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600"
-                        >
-                            Logout
-                        </button>
+                        {/* Buttons */}
+                        <div className="flex items-center gap-3">
+
+                            <button
+                                onClick={handleShowTicket}
+                                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600"
+                            >
+                                Show Ticket
+                            </button>
+
+                            <button
+                                onClick={handleLogout}
+                                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600"
+                            >
+                                Logout
+                            </button>
+
+                        </div>
+
+
 
                     </div>
                 </div>
@@ -232,10 +268,12 @@ const Dashboard = () => {
 
                                 <div className="text-right">
                                     <p className="text-2xl font-black text-orange-600">
-                                        ${flight.price}
+                                        {flight.price}.00
                                     </p>
 
-                                    <button className="mt-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-lg">
+                                    <button
+                                        onClick={() => handleBook(flight)}
+                                        className="mt-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-lg">
                                         Book
                                     </button>
                                 </div>
