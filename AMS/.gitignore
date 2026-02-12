@@ -1,0 +1,18 @@
+# Maven
+target/
+
+# Spring config
+application.properties
+application.yml
+
+# Env
+.env
+
+# IDE
+.classpath
+.project
+.settings/
+*.iml
+
+# Logs
+*.log

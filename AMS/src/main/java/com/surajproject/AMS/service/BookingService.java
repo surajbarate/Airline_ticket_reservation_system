@@ -3,6 +3,7 @@ package com.surajproject.AMS.service;
 
 import com.surajproject.AMS.entity.Booking;
 import com.surajproject.AMS.entity.Flight;
+import com.surajproject.AMS.entity.Passenger;
 import com.surajproject.AMS.entity.User;
 import com.surajproject.AMS.repositories.BookingRepository;
 import com.surajproject.AMS.repositories.FlightRepository;
@@ -12,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BookingService {
@@ -25,7 +28,7 @@ public class BookingService {
     @Autowired
     private UserRepositories userRepository;
 
-    public Booking createBooking(Long flightId) {
+    public Booking createBooking(Long flightId, List<Passenger> passengers) {
 
 
 
@@ -43,25 +46,37 @@ public class BookingService {
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new RuntimeException("Flight not found"));
 
+        int count=passengers.size();
+
+        double totalPrice=flight.getPrice()*count;
+
+        //Booking is table name
         Booking booking = new Booking();
         booking.setUser(user);
         booking.setFlight(flight);
         booking.setBookingTime(LocalDateTime.now());
-        booking.setPrice(flight.getPrice());
-        booking.setStatus("CREATED");
-
-        return bookingRepository.save(booking);
-
-    }
-
-    public Booking confirmBooking(Long id){
-        Booking booking=bookingRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("booking not found"));
-
+        booking.setPrice(totalPrice);
         booking.setStatus("CONFIRMED");
 
+        for (Passenger p : passengers) {
+            p.setBooking(booking);
+        }
+
+        booking.setPassengers(passengers);
+
         return bookingRepository.save(booking);
+
+
     }
+
+//    public Booking confirmBooking(Long id){
+//        Booking booking=bookingRepository.findById(id)
+//                .orElseThrow(()->new RuntimeException("booking not found"));
+//
+//        booking.setStatus("CONFIRMED");
+//
+//        return bookingRepository.save(booking);
+//    }
 
     public Booking cancelBooking(Long id){
         String email = SecurityContextHolder
