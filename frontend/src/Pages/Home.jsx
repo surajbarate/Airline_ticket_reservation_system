@@ -82,7 +82,7 @@ const Home = () => {
                                 Login
                             </button>
                             <button
-                                onClick={() => navigate('/register')}
+                                onClick={() => navigate('/login')}
                                 className="px-3 py-2 sm:px-5 sm:py-2 text-sm sm:text-base bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-semibold rounded-lg transition-all"
                             >
                                 Sign Up

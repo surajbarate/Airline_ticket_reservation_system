@@ -7,6 +7,7 @@ import Login from "./Pages/Login";
 import AddPassenger from './Pages/AddPassenger';
 import Dashboard from './Pages/Dashboard';
 import Ticket from "./Pages/Ticket";
+import Profile from './Pages/Profile';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/add-passenger" element={<AddPassenger />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/ticket" element={<Ticket />} />
+        <Route path='/profile' element={<Profile />} />
       </Routes>
     </BrowserRouter>
 

@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-
-
 const Dashboard = () => {
     const navigate = useNavigate();
 
@@ -19,6 +17,9 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [flights, setFlights] = useState([]);
+
+    // Profile menu state
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     // ---------------- AUTH CHECK ----------------
     useEffect(() => {
@@ -91,6 +92,7 @@ const Dashboard = () => {
         });
     };
 
+    // ---------------- SHOW TICKET ----------------
     const handleShowTicket = () => {
         const token = localStorage.getItem("token");
 
@@ -102,8 +104,6 @@ const Dashboard = () => {
 
         navigate("/ticket");
     };
-
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-rose-50">
@@ -131,25 +131,49 @@ const Dashboard = () => {
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 relative">
 
+                            {/* Show Ticket */}
                             <button
                                 onClick={handleShowTicket}
-                                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600"
+                                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600 text-sm md:text-base"
                             >
                                 Show Ticket
                             </button>
 
+                            {/* Profile Button */}
                             <button
-                                onClick={handleLogout}
-                                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-rose-600"
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="w-10 h-10 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center hover:bg-orange-600"
                             >
-                                Logout
+                                👤
                             </button>
 
+                            {/* Profile Dropdown */}
+                            {showProfileMenu && (
+                                <div className="absolute right-0 top-14 bg-white shadow-lg rounded-lg w-40 border z-50">
+
+                                    <button
+                                        onClick={() => {
+                                            navigate("/profile");
+                                            setShowProfileMenu(false);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    >
+                                        My Profile
+                                    </button>
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                                    >
+                                        Logout
+                                    </button>
+
+                                </div>
+                            )}
+
                         </div>
-
-
 
                     </div>
                 </div>
@@ -273,7 +297,8 @@ const Dashboard = () => {
 
                                     <button
                                         onClick={() => handleBook(flight)}
-                                        className="mt-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-lg">
+                                        className="mt-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-lg"
+                                    >
                                         Book
                                     </button>
                                 </div>
